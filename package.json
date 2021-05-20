@@ -1,0 +1,31 @@
+{
+  "name": "xendit-heroes",
+  "version": "1.0.0",
+  "description": "Marvel Characters API - Coding Challenge",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon --trace-warnings index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nhduong29/xendit-heroes.git"
+  },
+  "author": "Cyrus Nguyen",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/nhduong29/xendit-heroes/issues"
+  },
+  "homepage": "https://github.com/nhduong29/xendit-heroes#readme",
+  "dependencies": {
+    "axios": "^0.21.1",
+    "dotenv": "^9.0.2",
+    "express": "^4.17.1",
+    "flat-cache": "^3.0.4",
+    "md5": "^2.3.0",
+    "memory-cache": "^0.2.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.7"
+  }
+}
