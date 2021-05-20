@@ -2,7 +2,7 @@ require("dotenv").config();
 const PORT = process.env.PORT || 8080;
 const PUBLIC_KEY = process.env.PUBLIC_KEY;
 const PRIVATE_KEY = process.env.PRIVATE_KEY;
-const DURATION = process.env.DURATION || 60 * 1000 * 60;
+const DURATION = process.env.DURATION * 1000 * 60;
 const MARVEL_API_URL = process.env.MARVEL_API_URL || "https://gateway.marvel.com:443/v1/public";
 const TOTAL_CHARACTER_KEY = "xendit_heroes:total";
 const DURATION_KEY = "xendit_heroes:duration";
@@ -193,6 +193,7 @@ app.get("/clear-cache-all", (req, res) => {
   try {
     heroesCache.destroy();
     heroesDetailCache.destroy()
+    console.log("Cache is cleared!!")
     res.send({ message: "Cache is cleared!!" });
   } catch (error) {
     res.status(500).send({ message: "Can't no clear the cache" });
