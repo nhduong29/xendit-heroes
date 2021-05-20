@@ -189,10 +189,14 @@ app.get("/characters/:characterId", (req, res) => {
   }
 });
 
-app.get("/clear-cache-all", async (req, res) => {
-  heroesCache.destroy();
-  heroesDetailCache.destroy()
-  res.send({ message: "Cache is cleared!!" });
+app.get("/clear-cache-all", (req, res) => {
+  try {
+    heroesCache.destroy();
+    heroesDetailCache.destroy()
+    res.send({ message: "Cache is cleared!!" });
+  } catch (error) {
+    res.status(500).send({ message: "Can't no clear the cache" });
+  }
 });
 
 app.listen(PORT, function () {
