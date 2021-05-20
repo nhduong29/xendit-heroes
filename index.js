@@ -7,7 +7,8 @@ const MARVEL_API_URL = process.env.MARVEL_API_URL || "https://gateway.marvel.com
 const TOTAL_CHARACTER_KEY = "xendit_heroes:total";
 const DURATION_KEY = "xendit_heroes:duration";
 const HEROES_IDS_KEY = "xendit_heroes:heroesIDs";
-const CACHE_NAME = "xendit_heroes";
+const HEROES_CACHE_NAME = "xendit_heroes";
+const HEROES_DETAIL_CACHE_NAME = "xendit_heroes_detail";
 const TIMESTAMP = 1621398536;
 const MARVEL_LIMIT = 100; //
 const express = require("express");
@@ -30,8 +31,8 @@ const _axios = axios.create({
     ts: TIMESTAMP,
   },
 });
-const cache = flatCache.load(CACHE_NAME, path.resolve("./cache"));
-
+const heroesCache = flatCache.load(HEROES_CACHE_NAME, path.resolve("./cache"));
+const heroesDetailCache = flatCache.load(HEROES_DETAIL_CACHE_NAME, path.resolve("./cache"));
 const firstCheck = async (offset = 0) => {
   const response = await _axios.get(
     `/characters?offset=${offset}&limit=${MARVEL_LIMIT}`
@@ -56,21 +57,29 @@ const getListOfOffsetByTotal = (total) => {
   return offsets;
 };
 
-const getAllCharacters = async (total = 0, characterIDsArr = []) => {
+const getRemainingCharacters = async (offset = 0, characterIDsArr = []) => {
   try {
-    const listOffsets = getListOfOffsetByTotal(total);
+    const listOffsets = getListOfOffsetByTotal(offset);
     const requests = [];
     listOffsets.forEach((offset) => {
       requests.push(
         _axios.get(`/characters?offset=${offset}&limit=${MARVEL_LIMIT}`)
       );
     });
-    return await Promise.all(requests)
+    return Promise.all(requests)
       .then((res) => {
         res
           .filter((item) => item.status === 200)
           .forEach((item) => {
-            const itemArr = item.data.data.results.map((hero) => hero.id);
+            const itemArr = item.data.data.results.map((hero) => {
+              heroesDetailCache.setKey(hero.id,{
+                id: hero.id,
+                name: hero.name,
+                description: hero.description
+              })
+              heroesDetailCache.save(true)
+              return hero.id
+            });
             characterIDsArr = characterIDsArr.concat(itemArr);
           });
         return characterIDsArr;
@@ -81,21 +90,19 @@ const getAllCharacters = async (total = 0, characterIDsArr = []) => {
       });
   } catch (error) {
     console.log("An Error Occurred", error);
-    throw new ErrorHandler(400, error.message);
+    throw new ErrorHandler(500, error.message);
   }
 };
 
 app.get("/characters", async (req, res) => {
-  let totalCharacters = cache.getKey(TOTAL_CHARACTER_KEY);
-  let cacheContent = cache.getKey(HEROES_IDS_KEY);
-  let duration = cache.getKey(DURATION_KEY);
+  let totalCharacters = heroesCache.getKey(TOTAL_CHARACTER_KEY);
+  let cacheContent = heroesCache.getKey(HEROES_IDS_KEY);
+  let duration = heroesCache.getKey(DURATION_KEY);
 
   //Checking the cache, if data is there or not.
   if (cacheContent && duration && totalCharacters) {
     if (duration < new Date().getTime()) {
       //Checking the expired time
-
-      cache.getKey(TOTAL_CHARACTER_KEY);
       //Checking new data by calling an API to marvel
       let { count, total, results } = await firstCheck(totalCharacters);
       const diff = total - totalCharacters; //Because Marvel hero is never removed, then the total of the api call will be greater than the current total value is stored in our cache.
@@ -103,20 +110,20 @@ app.get("/characters", async (req, res) => {
         //There is new heroes
         const newCharacters = results.map((character) => character.id);
         const newHeroesArrIDs = cacheContent.concat(newCharacters);
-        cache.setKey(TOTAL_CHARACTER_KEY, total);
+        heroesCache.setKey(TOTAL_CHARACTER_KEY, total);
         if (diff <= MARVEL_LIMIT) {
           // The new number of new heroes is added in Marvel is less than or equal the limit of the record per request
           //=> Meaning we can get all new heroes in the api call above, => we will added the new heroes ids to our cache.
-          cache.setKey(HEROES_IDS_KEY, newHeroesArrIDs);
+          heroesCache.setKey(HEROES_IDS_KEY, newHeroesArrIDs);
           res.send(newHeroesArrIDs);
         } else {
           //case nay thi so luong hero moi no nhieu hown ca limit=> api firstCheck chua du
           //In this case the number of new heroes is added in Marvel is greater than the limit of the record per request
           //=>We need to get new all heroes with the offset is 
-          getAllCharacters(total, newHeroesArrIDs)
+          getRemainingCharacters(total, newHeroesArrIDs)
             .then((data) => {
               console.log(data.length);
-              cache.setKey(HEROES_IDS_KEY, data);
+              heroesCache.setKey(HEROES_IDS_KEY, data);
               res.send(data);
             })
             .catch((err) => {
@@ -126,9 +133,9 @@ app.get("/characters", async (req, res) => {
       }
       //set new duration and save all the change into the cache
       const newDuration = new Date().getTime() + DURATION;
-      console.log("Set new Duration: ", new Date(newDuration));
-      cache.setKey(DURATION_KEY, newDuration);
-      cache.save(true);
+      console.log("Set new expiration at: ", new Date(newDuration));
+      heroesCache.setKey(DURATION_KEY, newDuration);
+      heroesCache.save(true);
       res.send(cacheContent);
     } else {
       res.send(cacheContent);
@@ -139,31 +146,56 @@ app.get("/characters", async (req, res) => {
       const response = await firstCheck();
       let { total, results } = response;
       let charactersArr = results.map((character) => character.id);
-      getAllCharacters(total, charactersArr).then(
+      getRemainingCharacters(total, charactersArr).then(
         (data) => {
-          cache.setKey(HEROES_IDS_KEY, data);
-          cache.setKey(TOTAL_CHARACTER_KEY, data.length);
-          cache.setKey(DURATION_KEY, new Date().getTime() + DURATION);
-          cache.save(true);
+          heroesCache.setKey(HEROES_IDS_KEY, data);
+          heroesCache.setKey(TOTAL_CHARACTER_KEY, data.length);
+          heroesCache.setKey(DURATION_KEY, new Date().getTime() + DURATION);
+          heroesCache.save(true);
           res.send(data);
-        },
-        (err) => {
-          console.error(err);
-          res.send(err)
         }
-      )
+      ).catch((err) => {
+        throw new ErrorHandler(err.statusCode, err.message);
+      });
     } catch (error) {
-      res.send(new ErrorHandler(error.statusCode, error.message))
+      res.status(error.statusCode).send(new ErrorHandler(error.statusCode, error.message))
     }
   }
 });
 
-app.get("/clear-cache", async (req, res) => {
-  cache.destroy();
+app.get("/characters/:characterId", (req, res) => {
+  try {
+    const characterId = req.params.characterId 
+    let character = heroesDetailCache.getKey(characterId);
+    if(character){
+      res.send(character);
+    }else{
+      _axios.get(`/characters/${characterId}`).then(result=>{
+        character = {
+          id: result.data.results.id,
+          name: result.data.results.name,
+          description:result.data.results.description,
+        }
+        heroesDetailCache.setKey(characterId, character)
+        res.send(character);
+      },err=>{
+       throw new ErrorHandler(err.response.data.code, err.response.data.status)
+      }).catch (err=>{
+        res.status(err.statusCode).send(new ErrorHandler(err.statusCode, err.message));
+      })
+    }
+  } catch (error) {
+    res.status(500).end(new ErrorHandler(500, error.message))
+  }
+});
+
+app.get("/clear-cache-all", async (req, res) => {
+  heroesCache.destroy();
+  heroesDetailCache.destroy()
   res.send({ message: "Cache is cleared!!" });
 });
 
 app.listen(PORT, function () {
   console.log(`The app running on port ${PORT}`);
-  console.log(`Cache duration: ${new Date(new Date().getTime() + DURATION)} `);
+  console.log(`Cache will be expired at: ${new Date(new Date().getTime() + DURATION)} `);
 });
