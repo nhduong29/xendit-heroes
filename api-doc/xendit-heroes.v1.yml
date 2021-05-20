@@ -1,0 +1,217 @@
+openapi: 3.0.0
+info:
+  title: Xendit Heroes
+  version: '1.0'
+  description: Xendit Heroes Character of Marvel
+  contact:
+    name: Cyrus Nguyen
+    email: nhduuong29@gmail.com
+servers:
+  - description: ''
+    url: 'https://xendit-heroes.herokuapp.com'
+paths:
+  /characters:
+    get:
+      summary: Get List of IDs of character in Marvel public API
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                description: ''
+                minItems: 1
+                uniqueItems: true
+                x-examples:
+                  example-1:
+                    - 1011334
+                    - 1017100
+                    - 1009144
+                    - 1009329
+                items:
+                  type: integer
+              examples:
+                example-2:
+                  value:
+                    - 1011334
+                    - 1017100
+                    - 1009144
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  statusCode:
+                    type: number
+                  message:
+                    type: string
+                    minLength: 1
+                required:
+                  - statusCode
+                  - message
+                x-examples:
+                  example-1:
+                    statusCode: 404
+                    message: We couldn't find that character
+              examples:
+                example-1:
+                  value:
+                    statusCode: 404
+                    message: We couldn't find that character
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                example-1:
+                  value:
+                    statusCode: 500
+                    message: string
+      operationId: get-characters
+      parameters: []
+      description: Get List of IDs of character in Marvel public API
+    parameters: []
+  '/characters/{characterId}':
+    parameters:
+      - schema:
+          type: string
+        name: characterId
+        in: path
+        required: true
+    get:
+      summary: Get Marvel Hero by character ID
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Character'
+              examples:
+                example-1:
+                  value:
+                    id: 999999999
+                    name: Cyrus
+                    description: Running Man
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                example-1:
+                  value:
+                    statusCode: 404
+                    message: string
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                example-1:
+                  value:
+                    statusCode: 500
+                    message: string
+      operationId: get-character-id
+      description: Get Marvel Hero by character ID
+  /clear-cache-all:
+    get:
+      summary: Clear all cache
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  message:
+                    type: string
+                    minLength: 1
+                required:
+                  - message
+                x-examples:
+                  example-1:
+                    message: Cache is cleared!!
+              examples:
+                example-1:
+                  value:
+                    message: Cache is cleared!
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  message:
+                    type: string
+                    minLength: 1
+                required:
+                  - message
+                x-examples:
+                  example-1:
+                    message: Cache is cleared!!
+              examples:
+                example-1:
+                  value:
+                    message: string
+      operationId: get-clear-cache-all
+      description: Clear all cache of application
+components:
+  schemas:
+    Error:
+      description: ''
+      type: object
+      properties:
+        statusCode:
+          type: number
+        message:
+          type: string
+          minLength: 1
+      required:
+        - statusCode
+        - message
+      x-examples:
+        example-1:
+          value:
+            statusCode: 0
+            message: string
+    Character:
+      description: Character model
+      type: object
+      x-examples:
+        example-1:
+          id: 1010354
+          name: Adam Warlock
+          description: Adam Warlock is an artificially created human who was born in a cocoon at a scientific complex called The Beehive.
+      properties:
+        id:
+          type: number
+          description: ID of chararcter on Marval system
+        name:
+          type: string
+          minLength: 1
+          description: Name of chararcter on Marval system
+        description:
+          type: string
+          minLength: 1
+          description: Description of chararcter on Marval system
+      required:
+        - id
+        - name
+  securitySchemes: {}
