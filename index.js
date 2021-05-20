@@ -2,7 +2,7 @@ require("dotenv").config();
 const PORT = process.env.PORT || 8080;
 const PUBLIC_KEY = process.env.PUBLIC_KEY;
 const PRIVATE_KEY = process.env.PRIVATE_KEY;
-const DURATION = process.env.DURATION * 1000 * 60;
+const DURATION = process.env.DURATION || 60 * 1000 * 60;
 const MARVEL_API_URL = process.env.MARVEL_API_URL || "https://gateway.marvel.com:443/v1/public";
 const TOTAL_CHARACTER_KEY = "xendit_heroes:total";
 const DURATION_KEY = "xendit_heroes:duration";
@@ -199,7 +199,14 @@ app.get("/clear-cache-all", (req, res) => {
   }
 });
 
-app.listen(PORT, function () {
-  console.log(`The app running on port ${PORT}`);
-  console.log(`Cache will be expired at: ${new Date(new Date().getTime() + DURATION)} `);
-});
+if(PUBLIC_KEY && PRIVATE_KEY){
+  app.listen(PORT, function () {
+    console.log(`The app running on port ${PORT}`);
+    console.log(`Cache will be expired at: ${new Date(new Date().getTime() + DURATION)} `);
+  });
+}else{
+  console.error("Can't start the application. Please add the configs: PUBLIC_KEY,  PRIVATE_KEY and MARVEL_API_URL")
+  process.exit(1)
+}
+
+
