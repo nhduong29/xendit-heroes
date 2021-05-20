@@ -41,7 +41,7 @@ const firstCheck = async (offset = 0) => {
   return { count, total, results };
 };
 
-const getListOfOffsetByTotal = (total) => {
+const getListOfOffsetByTotal = (min=0,total) => {
   if (!total || total <= 0) {
     return [];
   }
@@ -53,13 +53,13 @@ const getListOfOffsetByTotal = (total) => {
   do {
     start = start - MARVEL_LIMIT;
     offsets.push(start);
-  } while (start > 0);
+  } while (start > min);
   return offsets;
 };
 
-const getRemainingCharacters = async (offset = 0, characterIDsArr = []) => {
+const getRemainingCharacters = async (min=0, offset = 0, characterIDsArr = []) => {
   try {
-    const listOffsets = getListOfOffsetByTotal(offset);
+    const listOffsets = getListOfOffsetByTotal(min, offset);
     const requests = [];
     listOffsets.forEach((offset) => {
       requests.push(
@@ -120,7 +120,7 @@ app.get("/characters", async (req, res) => {
           //case nay thi so luong hero moi no nhieu hown ca limit=> api firstCheck chua du
           //In this case the number of new heroes is added in Marvel is greater than the limit of the record per request
           //=>We need to get new all heroes with the offset is 
-          getRemainingCharacters(total, newHeroesArrIDs)
+          getRemainingCharacters(count, total, newHeroesArrIDs)
             .then((data) => {
               console.log(data.length);
               heroesCache.setKey(HEROES_IDS_KEY, data);
@@ -144,9 +144,9 @@ app.get("/characters", async (req, res) => {
     //Nothing from cache  then we get all heroes and set to cache
     try {
       const response = await firstCheck();
-      let { total, results } = response;
+      let { total, results, count } = response;
       let charactersArr = results.map((character) => character.id);
-      getRemainingCharacters(total, charactersArr).then(
+      getRemainingCharacters(count, total, charactersArr).then(
         (data) => {
           heroesCache.setKey(HEROES_IDS_KEY, data);
           heroesCache.setKey(TOTAL_CHARACTER_KEY, data.length);
