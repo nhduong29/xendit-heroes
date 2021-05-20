@@ -4,10 +4,10 @@
   "description": "Marvel Characters API - Coding Challenge",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon --trace-warnings index.js",
     "trace": "nodemon --trace-warnings index.js",
-    "start" : "node index.js"
+    "start": "node index.js",
+    "test": "mocha"
   },
   "repository": {
     "type": "git",
@@ -28,6 +28,9 @@
     "memory-cache": "^0.2.0"
   },
   "devDependencies": {
+    "chai": "^4.3.4",
+    "chai-http": "^4.3.0",
+    "mocha": "^8.4.0",
     "nodemon": "^2.0.7"
   },
   "engines": {
