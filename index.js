@@ -10,16 +10,18 @@ const express = require("express");
 const app = express();
 app.use((err, req, res, next) => {
   const { statusCode, message } = err;
-    res.status(statusCode).json({
-      status: "error",
-      statusCode,
-      message,
-    });
+  res.status(statusCode).json({
+    status: "error",
+    statusCode,
+    message,
+  });
 });
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.get("/", (req, res) => res.json({ message: "Welcome to our Xendit Heroes!" }));
+app.get("/", (req, res) =>
+  res.json({ message: "Welcome to our Xendit Heroes!" })
+);
 app.route("/characters").get(character.getCharacterIDs);
 app.route("/characters/:characterId").get(character.getCharacter);
 app.route("/clear-cache-all").get(character.clearAllCache);

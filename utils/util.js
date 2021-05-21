@@ -1,5 +1,5 @@
 require("dotenv").config();
-const MARVEL_LIMIT = 100; 
+const MARVEL_LIMIT = 100;
 const _axios = require("../_axios");
 const flatCache = require("flat-cache");
 const HEROES_CACHE_NAME = "xendit_heroes";

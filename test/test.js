@@ -1,8 +1,6 @@
-var assert = require("assert");
 let chai = require("chai");
 let chaiHttp = require("chai-http");
 let server = require("../index");
-let should = chai.should();
 
 chai.use(chaiHttp);
 
@@ -28,7 +26,7 @@ describe("Xendit API Test", () => {
   });
 
   describe("/GET characters by ID", () => {
-    it("it should a character with specific ID", (done) => {
+    it("it should return a character with specific ID", (done) => {
       chai
         .request(server)
         .get("/characters/1017100")
@@ -36,6 +34,19 @@ describe("Xendit API Test", () => {
           res.should.have.status(200);
           res.body.should.be.a("object");
           res.body.name.should.be.eql("A-Bomb (HAS)");
+          done();
+        });
+    });
+  });
+
+  describe("/GET characters by incorrect ID", () => {
+    it("it should throw an error", (done) => {
+      chai
+        .request(server)
+        .get("/characters/1")
+        .end((err, res) => {
+          res.should.have.status(404);
+          res.body.should.be.a("object");
           done();
         });
     });

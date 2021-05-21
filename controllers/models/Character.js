@@ -1,9 +1,8 @@
 class Character {
-    constructor(id, name, description) {
-      this.id = id;
-      this.name = name;
-      this.description = description
-    }
+  constructor(id, name, description) {
+    this.id = id;
+    this.name = name;
+    this.description = description;
   }
-  module.exports = Character
-  
+}
+module.exports = Character;

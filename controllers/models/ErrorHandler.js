@@ -5,4 +5,4 @@ class ErrorHandler extends Error {
     this.message = message;
   }
 }
-module.exports = ErrorHandler
+module.exports = ErrorHandler;
