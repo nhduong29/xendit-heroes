@@ -36,7 +36,14 @@ Notes:
 
 - `node` in latest version. Make sure your local is installed NodeJS
 - `npm` in latest version. Make sure your local installed npm
-- Make sure you config the variable correctly on `.env`: `PUBLIC_KEY`, `PRIVATE_KEY` and `DURATION`
+- Make sure you config the variable correctly on `.env`: `PUBLIC_KEY`, `PRIVATE_KEY` and `DURATION`,here is the `.env` content:
+ ```sh
+PORT=YOUR_SERVER_PORT
+PUBLIC_KEY=MAVEL_API_PUIBLIC_KEY
+PRIVATE_KEY=MARVEL_API_PRIVATE_KEY
+DURATION=CACHE_VALID_DURATION_TIME_IN_MINUTE
+MARVEL_API_URL=MARVEL_API_URL
+```
 
 
 ## Installation
