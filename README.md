@@ -7,6 +7,7 @@ APIs for getting all chacracters of Marvel using some caching tech to improve th
 
 - `/characters` that returns all the Marvel character ids in a JSON array of numbers
 - `/characters/{characterId}` that returns only the id, name and description of the character.
+- `/clear-cache-all` manually clear all cache of application
 
 ## OpenAPI Spec
 - Please get it from: `api-doc/xendit-heroes.v1.yml`
